@@ -4,11 +4,8 @@ export default function Layout() {
   return (
     <Stack screenOptions={{ headerShown: true }}>
       <Stack.Screen
-        name="home"
-        options={{
-          title: "Home",
-        }}
-      />
+        name="add"
+    />
     </Stack>
   );
 }

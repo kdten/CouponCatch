@@ -1,10 +1,17 @@
 {
   "expo": {
+    "android": {
+      "googleServicesFile": "./google-services.json"
+    },
+    "ios": {
+      "googleServicesFile": "./GoogleService-Info.plist"
+    },
     "scheme": "acme",
     "web": {
       "bundler": "metro"
     },
     "name": "rn-file-router",
-    "slug": "rn-file-router"
+    "slug": "rn-file-router",
+    "plugins": ["@react-native-google-signin/google-signin"]
   }
 }

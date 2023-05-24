@@ -2,7 +2,7 @@ import { Redirect, Stack, useRouter } from "expo-router";
 import { Button, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { AuthStore, appSignOut } from "../../../store";
 
-const Tab2Index = () => {
+const Tab4Index = () => {
   const router = useRouter();
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -60,4 +60,4 @@ const Tab2Index = () => {
     </View>
   );
 };
-export default Tab2Index;
+export default Tab4Index;

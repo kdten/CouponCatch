@@ -1,5 +1,5 @@
 import { Link, Redirect, Stack } from "expo-router";
-import { View } from "react-native";
+import { View, ScrollView, SafeAreaView } from "react-native";
 
 const Tab1Index = () => {
   return (

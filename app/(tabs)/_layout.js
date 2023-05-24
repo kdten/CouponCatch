@@ -1,5 +1,7 @@
 import { Tabs } from "expo-router";
 import { Text } from "react-native";
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 
 const TabsLayout = () => {
   return (
@@ -12,14 +14,28 @@ const TabsLayout = () => {
         name="home"
         options={{
           title: "Home",
-          tabBarIcon: () => <Text>🏠</Text>,
+          tabBarIcon: () => <Ionicons name="home-outline" size={24} color="black" />,
         }}
       />
+      <Tabs.Screen
+        name="add"
+        options={{
+          title: "Home",
+          tabBarIcon: () => <Ionicons name="add-outline" size={24} color="black" />,
+        }}
+      />
+      {/* <Tabs.Screen
+        name="sale"
+        options={{
+          title: "Sale",
+          tabBarIcon: () => <Ionicons name="reader-outline" size={24} color="black" />,
+        }}
+      /> */}
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: () => <Text>⚙️</Text>,
+          tabBarIcon: () => <Ionicons name="person-outline" size={24} color="black" />,
         }}
       />
     </Tabs>
