@@ -1,8 +1,50 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, KeyboardAvoidingView, TouchableWithoutFeedback } from "react-native";
 import { useRef, useState } from "react";
 import { AuthStore, appSignUp } from "../../store.js";
 import { Stack, useRouter } from "expo-router";
 import { TextInput, Text, Button } from "@react-native-material/core";
+import PasswordStrengthMeterBar from "react-native-password-strength-meter-bar";
+
+// Define strength level list
+const strengthLevels = [
+  {
+    label: 'Weak',
+    labelColor: '#fff',
+    widthPercent: '33',
+    innerBarColor: '#fe6c6c'
+  },
+  {
+    label: 'Weak',
+    labelColor: '#fff',
+    widthPercent: '33',
+    innerBarColor: '#fe6c6c'
+  },
+  {
+    label: 'Fair',
+    labelColor: '#fff',
+    widthPercent: '67',
+    innerBarColor: '#feb466'
+  },
+  {
+    label: 'Fair',
+    labelColor: '#fff',
+    widthPercent: '67',
+    innerBarColor: '#feb466'
+  },
+  {
+    label: 'Strong',
+    labelColor: '#fff',
+    widthPercent: '100',
+    innerBarColor: '#6cfeb5'
+  }
+];
+
+// Define too short object
+const tooShort = {
+  enabled: true,
+  label: 'Too short',
+  labelColor: 'red'
+};
 
 export default function CreateAccount() {
   const router = useRouter();
@@ -11,6 +53,7 @@ export default function CreateAccount() {
   const [passwordRepeat, setPasswordRepeat] = useState("");
   const [emailError, setEmailError] = useState(null);
   const [passwordError, setPasswordError] = useState(null);
+  const [passwordIsValid, setPasswordIsValid] = useState(false);
 
     // valdiate error messages, if errors !exist, then sends to database
     const validate = () => {
@@ -18,8 +61,8 @@ export default function CreateAccount() {
         setEmailError('Please enter a valid email address');
       }
   
-      else if (password.length < 6){
-        setPasswordError('Password must be at least 6 characters');
+      else if (password.length < 8){
+        setPasswordError('Password must be at least 8 characters');
       }
   
       else if (email.length === 0 )
@@ -49,7 +92,7 @@ export default function CreateAccount() {
       <Stack.Screen
         options={{ title: "Create Account", headerLeft: () => <></> }}
       />
-      <View>
+      <KeyboardAvoidingView>
         <TextInput
           style={styles.textInput}
           label="email"
@@ -60,8 +103,8 @@ export default function CreateAccount() {
             setEmail(text);
           }}
         />
-      </View>
-      <View>
+      </KeyboardAvoidingView>
+      <KeyboardAvoidingView>
         <TextInput
           label="password"
           variant="outlined"
@@ -73,9 +116,12 @@ export default function CreateAccount() {
           }}
           style={styles.textInput}
         />
-      </View>
-      <View>
+        <PasswordStrengthMeterBar password={password} />
+
+      </KeyboardAvoidingView>
+      <KeyboardAvoidingView>
         <TextInput
+          size='short'
           label="password repeat"
           variant="outlined"
           secureTextEntry={true}
@@ -86,14 +132,13 @@ export default function CreateAccount() {
           }}
           style={styles.textInput}
         />
-      </View>
+      </KeyboardAvoidingView>
 
       <Text style={styles.validateErrorText}>{emailError}</Text>
       <Text style={styles.validateErrorText}>{passwordError}</Text>
         
-      <View style={{ flexDirection: "column", justifyContent: "space-between" }}>
+      <View style={{ flexDirection: "column", justifyContent: "space-between", alignSelf: 'center', alignItems: 'center' }}>
       <Button
-        style={{ marginBottom: 8 }}
         onPress={async () => {
           if (!validate()) return;
           const resp = await appSignUp(
@@ -107,11 +152,11 @@ export default function CreateAccount() {
             Alert.alert("Sign Up Error", resp.error?.message);
           }
         }}
-        title="Save new user"
+        title="Save your new account"
         color="#000"
       >
       </Button>
-
+        <br />
       <Button
         onPress={() => {
           AuthStore.update((s) => {
