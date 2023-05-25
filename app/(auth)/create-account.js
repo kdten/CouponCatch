@@ -1,14 +1,48 @@
-import { Text, View, TextInput, StyleSheet } from "react-native";
-import { useRef } from "react";
+import { View, StyleSheet } from "react-native";
+import { useRef, useState } from "react";
 import { AuthStore, appSignUp } from "../../store.js";
 import { Stack, useRouter } from "expo-router";
+import { TextInput, Text, Button } from "@react-native-material/core";
 
 export default function CreateAccount() {
   const router = useRouter();
-  const emailRef = useRef("");
-  const firstNameRef = useRef("");
-  const lastNameRef = useRef("");
-  const passwordRef = useRef("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordRepeat, setPasswordRepeat] = useState("");
+  const [emailError, setEmailError] = useState(null);
+  const [passwordError, setPasswordError] = useState(null);
+
+    // valdiate error messages, if errors !exist, then sends to database
+    const validate = () => {
+      if (!email.includes('@')){
+        setEmailError('Please enter a valid email address');
+      }
+  
+      else if (password.length < 6){
+        setPasswordError('Password must be at least 6 characters');
+      }
+  
+      else if (email.length === 0 )
+        setEmailError('Email is required');
+  
+      else if (email.indexOf(' ') >= 0) {
+        setEmailError('Email cannot contain spaces');
+      }
+  
+      else if (password.indexOf(' ') >= 0) {
+        setPasswordError('Password cannot contain spaces');
+      }
+
+      else if (password !== passwordRepeat) {
+        setPasswordError('Passwords do not match');
+      }
+  
+      else {
+        setEmailError('');
+        setPasswordError('');
+        return true;
+      }
+    }
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -16,58 +50,55 @@ export default function CreateAccount() {
         options={{ title: "Create Account", headerLeft: () => <></> }}
       />
       <View>
-        <Text style={styles.label}>Email</Text>
         <TextInput
-          placeholder="email"
+          style={styles.textInput}
+          label="email"
+          variant="outlined"
           nativeID="email"
-          onChangeText={(text) => {
-            emailRef.current = text;
+          value={email}
+          onChangeText={(text) => { 
+            setEmail(text);
           }}
-          style={styles.textInput}
         />
       </View>
       <View>
-        <Text style={styles.label}>First Name</Text>
         <TextInput
-          placeholder="firstName"
-          nativeID="firstName"
-          onChangeText={(text) => {
-            firstNameRef.current = text;
-          }}
-          style={styles.textInput}
-        />
-      </View>
-      <View>
-        <Text style={styles.label}>Last Name</Text>
-        <TextInput
-          placeholder="lastName"
-          nativeID="lastName"
-          onChangeText={(text) => {
-            lastNameRef.current = text;
-          }}
-          style={styles.textInput}
-        />
-      </View>
-      <View>
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          placeholder="password"
+          label="password"
+          variant="outlined"
           secureTextEntry={true}
           nativeID="password"
-          onChangeText={(text) => {
-            passwordRef.current = text;
+          value={password}
+          onChangeText={(text) => { 
+            setPassword(text);
+          }}
+          style={styles.textInput}
+        />
+      </View>
+      <View>
+        <TextInput
+          label="password repeat"
+          variant="outlined"
+          secureTextEntry={true}
+          nativeID="passwordrepeat"
+          value={passwordRepeat}
+          onChangeText={(text) => { 
+            setPasswordRepeat(text);
           }}
           style={styles.textInput}
         />
       </View>
 
-      <Text
+      <Text style={styles.validateErrorText}>{emailError}</Text>
+      <Text style={styles.validateErrorText}>{passwordError}</Text>
+        
+      <View style={{ flexDirection: "column", justifyContent: "space-between" }}>
+      <Button
         style={{ marginBottom: 8 }}
         onPress={async () => {
+          if (!validate()) return;
           const resp = await appSignUp(
-            emailRef.current,
-            passwordRef.current,
-            firstNameRef.current + " " + lastNameRef.current
+            email,
+            password,
           );
           if (resp?.user) {
             router.replace("/(tabs)/home");
@@ -76,20 +107,23 @@ export default function CreateAccount() {
             Alert.alert("Sign Up Error", resp.error?.message);
           }
         }}
+        title="Save new user"
+        color="#000"
       >
-        SAVE NEW USER
-      </Text>
+      </Button>
 
-      <Text
+      <Button
         onPress={() => {
           AuthStore.update((s) => {
             s.isLoggedIn = false;
           });
-          router.back();
+          router.replace("/login");
         }}
+        title="Cancel"
+        color="#000"
       >
-        CANCEL
-      </Text>
+      </Button>
+      </View>
     </View>
   );
 }
@@ -97,15 +131,16 @@ export default function CreateAccount() {
 const styles = StyleSheet.create({
   label: {
     marginBottom: 4,
-    color: "#455fff",
   },
   textInput: {
     width: 250,
-    borderWidth: 1,
-    borderRadius: 4,
-    borderColor: "#455fff",
     paddingHorizontal: 8,
     paddingVertical: 4,
     marginBottom: 8,
   },
+  validateErrorText: {
+    color: 'red',
+    fontSize: 15,
+    marginBottom: 8,
+  }
 });

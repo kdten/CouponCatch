@@ -1,62 +1,85 @@
-import { Text, View, TextInput, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { AuthStore, appSignIn } from "../../store.js";
 import { Stack, useRouter } from "expo-router";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { TextInput, Text, Button } from "@react-native-material/core";
 
 export default function LogIn() {
   const router = useRouter();
-  const emailRef = useRef("");
-  const passwordRef = useRef("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <View>
-        <Text style={styles.label}>Email</Text>
         <TextInput
-          placeholder="email"
-          autoCapitalize="none"
-          nativeID="email"
-          onChangeText={(text) => {
-            emailRef.current = text;
-          }}
           style={styles.textInput}
+          label="email"
+          variant="outlined"
+          nativeID="email"
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+          }}
         />
       </View>
       <View>
-        <Text style={styles.label}>Password</Text>
         <TextInput
-          placeholder="password"
+          style={styles.textInput}
+          label="password"
+          variant="outlined"
+          size="small"
           secureTextEntry={true}
           nativeID="password"
+          value={password}
           onChangeText={(text) => {
-            passwordRef.current = text;
+            setPassword(text);
           }}
-          style={styles.textInput}
+          color="primary"
         />
       </View>
-      <Text
-        onPress={async () => {
-          const resp = await appSignIn(emailRef.current, passwordRef.current);
-          if (resp?.user) {
-            router.replace("/(tabs)/home");
-          } else {
-            console.log(resp.error)
-            Alert.alert("Login Error", resp.error?.message)
-          }
-        }}
-      >
-        Login
-      </Text>
-      <Text
-        onPress={() => {
-          AuthStore.update((s) => {
-            s.isLoggedIn = true;
-          });
-          router.push("/create-account");
-        }}
-      >
-        Create Account
-      </Text>
+
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <Button
+          onPress={async () => {
+            const resp = await appSignIn(email, password);
+            if (resp?.user) {
+              router.replace("/(tabs)/home");
+            } else {
+              console.log(resp.error);
+              Alert.alert("Login Error", resp.error?.message);
+            }
+          }}
+          title="Login"
+          color="#000"
+        />
+        
+        <Button
+          style={{ marginLeft: 24 }}
+          onPress={() => {
+            AuthStore.update((s) => {
+              s.isLoggedIn = true;
+            });
+            router.push("/create-account");
+          }}
+          title="Create"
+          color="#000"
+        />
+      </View>
+      {/* <View style={{ flexDirection: "row" }}>
+        <Button
+          style={{ marginTop: 12, backgroundColor: "red" }}
+          // login with Google here 
+          title="Login with Google"
+          trailing={props => <Ionicon name="logo-google" {...props} />}
+        />
+      </View> */}
     </View>
   );
 }
@@ -64,15 +87,24 @@ export default function LogIn() {
 const styles = StyleSheet.create({
   label: {
     marginBottom: 4,
-    color: "#455fff",
   },
   textInput: {
     width: 250,
-    borderWidth: 1,
     borderRadius: 4,
-    borderColor: "#455fff",
     paddingHorizontal: 8,
     paddingVertical: 4,
     marginBottom: 8,
   },
+  validateErrorText: {
+    color: 'red',
+    fontSize: 15,
+    marginBottom: 8,
+
+  }
 });
+
+const DismissKeyboard = ({ children }) => (
+  <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+    {children}
+  </TouchableWithoutFeedback>
+);
