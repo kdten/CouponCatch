@@ -157,27 +157,28 @@ export default function CreateAccount() {
               const resp = await appSignUp(email, password);
               if (resp?.user) {
                 router.replace("/(tabs)/home");
-              } else {
-                console.log(resp.error);
-                Alert.alert("Sign Up Error", resp.error?.message);
-              }
-            } catch (error) {
-              // Handle different error codes from Firebase
-              if (error.code === "auth/email-already-in-use") {
+                // Handle failed/error codes from Firebase
+              } else if (resp.error.code === "auth/email-already-in-use") {
                 setEmailError("The email address is already in use.");
               } else {
                 // Generic error message for other error codes
-                Alert.alert(
-                  "Sign Up Error",
+                setEmailError(
                   "An error occurred during sign up. Please try again."
                 );
               }
+              console.log(error);
+            } catch (error) {
+              // Generic error message for other error codes
+              setEmailError(
+                "An error occurred during login. Please try again."
+              );
               console.log(error);
             }
           }}
           title="Save your new account"
           color="#000"
         />
+
         <View style={{ marginTop: 20 }} />
         <Button
           onPress={() => {

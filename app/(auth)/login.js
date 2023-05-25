@@ -72,7 +72,6 @@ export default function LogIn() {
         />
       </KeyboardAvoidingView>
 
-      <View style={{ marginTop: 20 }} />
       <Text style={styles.validateErrorText}>{emailError}</Text>
       <Text style={styles.validateErrorText}>{passwordError}</Text>
 
@@ -85,35 +84,27 @@ export default function LogIn() {
       >
         <Button
           onPress={async () => {
+            if (!validate()) return;
             try {
               const resp = await appSignIn(email, password);
               if (resp?.user) {
                 router.replace("/(tabs)/home");
+              } else if (resp.error.code === "auth/invalid-email") {
+                setEmailError("Invalid email. Please check and try again.");
+              } else if (resp.error.code === "auth/user-not-found") {
+                setEmailError("Email not found. Please check and try again.");
+              } else if (resp.error.code === "auth/invalid-password") {
+                setEmailError("Invalid password. Please check and try again.");
               } else {
-                console.log(resp.error);
-                Alert.alert("Login Error", resp.error?.message);
-              }
-            } catch (error) {
-              // Handle different error codes from Firebase
-              if (error.code === "auth/invalid-email") {
-                setEmailError(
-                  "Invalid email password combo. Please check and try again."
-                );
-              } else if (error.code === "auth/user-not-found") {
-                setEmailError(
-                  "No user found with this email. Please check the email and try again."
-                );
-              } else if (error.code === "auth/invalid-password") {
-                setEmailError(
-                  "Invalid email password combo. Please check and try again."
-                );
-              } else {
-                // Generic error message for other error codes
                 setEmailError(
                   "An error occurred during login. Please try again."
                 );
               }
-              console.log(error);
+            } catch (error) {
+              // Generic error message for other error codes
+              setEmailError(
+                "An error occurred during login. Please try again."
+              );
             }
           }}
           title="Login"
