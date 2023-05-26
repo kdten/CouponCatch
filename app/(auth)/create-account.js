@@ -149,7 +149,8 @@ export default function CreateAccount() {
           alignSelf: "center",
           alignItems: "center",
         }}
-      >
+      />
+                <View style={{ marginTop: 20 }} >
         <Button
           onPress={async () => {
             try {
@@ -166,11 +167,11 @@ export default function CreateAccount() {
                   "An error occurred during sign up. Please try again."
                 );
               }
-              console.log(error);
+              console.log(resp.error);
             } catch (error) {
               // Generic error message for other error codes
               setEmailError(
-                "An error occurred during login. Please try again."
+                "An error occurred during signup. Please try again."
               );
               console.log(error);
             }
@@ -178,8 +179,9 @@ export default function CreateAccount() {
           title="Save your new account"
           color="#000"
         />
+        </View>
 
-        <View style={{ marginTop: 20 }} />
+        <View style={{ marginTop: 20 }} >
         <Button
           onPress={() => {
             AuthStore.update((s) => {
@@ -194,6 +196,7 @@ export default function CreateAccount() {
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   label: {
