@@ -6,6 +6,8 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   ScrollView,
+  Image,
+  Platform
 } from "react-native";
 import { AuthStore, appSignIn } from "../../store.js";
 import { Stack, useRouter } from "expo-router";
@@ -37,14 +39,24 @@ export default function LogIn() {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <KeyboardAvoidingView>
+    <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={{ flex: 1 }}
+  >
+
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Image 
+          style={styles.loginLogo}
+          source={require('../../assets/v3.png')}
+        />
+      
         <TextInput
           style={styles.textInput}
           label="email"
@@ -55,8 +67,8 @@ export default function LogIn() {
             setEmail(text);
           }}
         />
-      </KeyboardAvoidingView>
-      <KeyboardAvoidingView>
+      
+      
         <TextInput
           style={styles.textInput}
           label="password"
@@ -70,7 +82,7 @@ export default function LogIn() {
           }}
           color="primary"
         />
-      </KeyboardAvoidingView>
+      
 
       <Text style={styles.validateErrorText}>{emailError}</Text>
       <Text style={styles.validateErrorText}>{passwordError}</Text>
@@ -100,11 +112,13 @@ export default function LogIn() {
                   "An error occurred during login. Please try again."
                 );
               }
+              console.log(resp.error);
             } catch (error) {
               // Generic error message for other error codes
               setEmailError(
                 "An error occurred during login. Please try again."
               );
+              console.log(error);
             }
           }}
           title="Login"
@@ -116,7 +130,6 @@ export default function LogIn() {
         <Text style={{ fontSize: 12 }}>Don't have an account?</Text>
         <Button
           onPress={() => {
-            if (!validate()) return;
             AuthStore.update((s) => {
               s.isLoggedIn = true;
             });
@@ -126,7 +139,9 @@ export default function LogIn() {
           color="#000"
         />
       </View>
-    </ScrollView>
+      </ScrollView>
+
+    </KeyboardAvoidingView>
   );
 }
 
@@ -145,6 +160,12 @@ const styles = StyleSheet.create({
     color: "red",
     fontSize: 15,
     marginBottom: 8,
+  },
+  loginLogo: {
+    // make the width the view width
+    width: 400,
+    height: 250,
+    resizeMode: 'contain',
   },
 });
 

@@ -8,11 +8,12 @@ import {
   updateProfile,
 } from "firebase/auth/react-native";
 import { app, auth } from "./firebase-config";
-// Firestore Firestore imports
-import { getFirestore, collection, addDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+// Firebase Firestore imports
+import { getFirestore, collection, addDoc, setDoc, serverTimestamp, doc } from 'firebase/firestore';
+// Firebase Storage imports
+import { v4 as uuidv4 } from 'uuid';
+// import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
-// Initialize Firestore
-const db = getFirestore(app);
 
 export const AuthStore = new Store({
   isLoggedIn: false,
@@ -20,75 +21,49 @@ export const AuthStore = new Store({
   user: null,
 });
 
+// Initialize Firestore
+const db = getFirestore(app);
 
-
-
-// Firebase Storage imports
-// import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
-// import { v4 as uuidv4 } from 'uuid';
-// import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-// // Initialize Firestore
-// const db = getFirestore();
+// // Initialize Storage
 // const storage = getStorage();
 
-// export const uploadImageToFirebase = async (uri) => {
-//   try {
-//     const imageName = uuidv4();
-//     const imageRef = ref(storage, `Users/${imageName}`);
-//     const snapshot = await uploadBytesResumable(imageRef, uri);
-//     const downloadURL = await getDownloadURL(snapshot.ref);
+// import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+// import { storage, db, auth } from './firebase-config';
 
-//     const docRef = await addDoc(collection(db, "images"), {
-//       url: downloadURL,
-//       createdAt: new Date().toISOString()
-//     });
+export const uploadReceiptImageToFirebaseStorage = async (uid, uri) => {
+  try {
+    const imageName = uuidv4();
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const receiptRef = ref(storage, `Users/${uid}/Receipts/${imageName}`);
+    const snapshot = await uploadBytesResumable(receiptRef, blob);
+    const downloadURL = await getDownloadURL(snapshot.ref);
 
-//     return { id: docRef.id, url: downloadURL };
-//   } catch (e) {
-//     return { error: e };
-//   }
-// };
+    // Now this function returns the download URL of the uploaded image
+    return downloadURL;
 
-// export const getImagesFromFirebase = async () => {
-//   try {
-//     const querySnapshot = await getDocs(collection(db, "images"));
-//     const images = [];
-//     querySnapshot.forEach((doc) => {
-//       images.push({ id: doc.id, ...doc.data() });
-//     });
-//     return images;
-//   } catch (e) {
-//     return { error: e };
-//   }
-// };
+  } catch (e) {
+    console.error("Error during image upload to Firebase", e);
+    return null;
+  }
+};
 
-// In this updated store.js, uploadImageToFirebase uploads an image to Firebase Storage and saves the download URL to Firestore, then returns the new document ID and the image URL. getImagesFromFirebase retrieves all images from Firestore and returns them in an array.
+export const addReceiptToFirestore = async (url) => {
+  try {
+    const userID = auth.currentUser.uid;
+    const receiptData = {
+      receiptImageURL: url,
+      UserID: userID,
+      timeCreated: serverTimestamp(), // this will add a server timestamp
+    };
 
-// Note that these functions are exported directly and do not directly update any store. Depending on your application structure, you may want to update the AuthStore (or a new, separate store) inside these functions. For example, if you want to keep track of the current image, you could add currentImage: null to AuthStore, then update currentImage inside uploadImageToFirebase. Similarly, you could add images: [] to AuthStore, then update images inside getImagesFromFirebase.
-
-//native change \/ \/ \/
-// export const uploadImageToFirebase = async (uri) => {
-//   try {
-//     const imageName = uuidv4();
-//     const response = await fetch(uri);
-//     const blob = await response.blob();
-//     const imageRef = ref(storage, `images/${imageName}`);
-//     const snapshot = await uploadBytesResumable(imageRef, blob);
-//     const downloadURL = await getDownloadURL(snapshot.ref);
-
-//     const docRef = await addDoc(collection(db, "images"), {
-//       name: imageName,
-//       url: downloadURL
-//     });
-
-//     return docRef.id;
-
-//   } catch (e) {
-//     console.error("Error during image upload to Firebase", e);
-//     return null;
-//   }
-// };
-
+    const docRef = await addDoc(collection(db, "Receipts"), receiptData);
+    return docRef.id;
+  } catch (e) {
+    console.error("Error during adding receipt to Firestore", e);
+    return null;
+  }
+};
 
 
 const unsub = onAuthStateChanged(auth, (user) => {
