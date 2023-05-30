@@ -30,8 +30,9 @@ const db = getFirestore(app);
 // import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 // import { storage, db, auth } from './firebase-config';
 
-export const uploadReceiptImageToFirebaseStorage = async (uid, uri) => {
+export const uploadReceiptImageToFirebaseStorage = async (uri) => {
   try {
+    const uid = auth.currentUser.uid;
     const imageName = uuidv4();
     const response = await fetch(uri);
     const blob = await response.blob();
@@ -55,6 +56,11 @@ export const addReceiptToFirestore = async (url) => {
       receiptImageURL: url,
       UserID: userID,
       timeCreated: serverTimestamp(), // this will add a server timestamp
+      memberNumber: "",
+      storeName: "",
+      storeNumber: "",
+      dateOfPurchase: "",
+      items: [],
     };
 
     const docRef = await addDoc(collection(db, "Receipts"), receiptData);
@@ -122,6 +128,7 @@ export const appSignUp = async (email, password, displayName) => {
 
     AuthStore.update((store) => {
       store.user = auth.currentUser;
+      // store.userID = auth.currentUser.uid;
       store.isLoggedIn = true;
     });
 
