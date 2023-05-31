@@ -12,23 +12,21 @@ import { app, auth } from "./firebase-config";
 import { getFirestore, collection, addDoc, setDoc, serverTimestamp, doc } from 'firebase/firestore';
 // Firebase Storage imports
 import { v4 as uuidv4 } from 'uuid';
-// import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 
 export const AuthStore = new Store({
   isLoggedIn: false,
   initialized: false,
   user: null,
+  userID: null,
 });
 
 // Initialize Firestore
-const db = getFirestore(app);
+export const db = getFirestore(app);
 
 // // Initialize Storage
-// const storage = getStorage();
-
-// import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-// import { storage, db, auth } from './firebase-config';
+const storage = getStorage();
 
 export const uploadReceiptImageToFirebaseStorage = async (uri) => {
   try {
@@ -49,18 +47,14 @@ export const uploadReceiptImageToFirebaseStorage = async (uri) => {
   }
 };
 
-export const addReceiptToFirestore = async (url) => {
+export const addReceiptToFirestore = async (url, receiptInfo) => {
   try {
     const userID = auth.currentUser.uid;
     const receiptData = {
       receiptImageURL: url,
       UserID: userID,
       timeCreated: serverTimestamp(), // this will add a server timestamp
-      memberNumber: "",
-      storeName: "",
-      storeNumber: "",
-      dateOfPurchase: "",
-      items: [],
+      ...receiptInfo,
     };
 
     const docRef = await addDoc(collection(db, "Receipts"), receiptData);
@@ -128,7 +122,7 @@ export const appSignUp = async (email, password, displayName) => {
 
     AuthStore.update((store) => {
       store.user = auth.currentUser;
-      // store.userID = auth.currentUser.uid;
+      store.userID = auth.currentUser.uid;
       store.isLoggedIn = true;
     });
 

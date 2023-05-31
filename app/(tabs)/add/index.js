@@ -8,8 +8,11 @@ import {
   addReceiptToFirestore,
 } from "../../../store";
 
+import { ActivityIndicator } from "@react-native-material/core";
+
 const Tab2Index = () => {
   const [image, setImage] = useState(null);
+  const [base64Img, setBase64Img] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -28,23 +31,15 @@ const Tab2Index = () => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
       quality: 1,
-      base64: true,  // Add this line
+      base64: true,
     });
     //   console.log(result);
 
     if (!result.canceled) {
-      setImage(result.uri);
-      //setImage(result.assets[0].uri) instead of setImage(result.uri) if using ImagePicker.launchImageLibraryAsync
+      setImage(result.assets[0].uri);
+      setBase64Img(result.assets[0].base64);
       // Send base64 version to API
-      const detectedText = await callGoogleVisionAsync(result.base64);
-
-
-    // Upload the image to Firebase Storage
-  // const imageUrl = await uploadReceiptImageToFirebaseStorage(result.uri);
-    
-  // Save imageURL to Firestore
-  // await addReceiptToFirestore(imageUrl);
-  
+      // const receiptInfo = await callGoogleVisionAsync(base64Img);
     }
   };
 
@@ -56,8 +51,7 @@ const Tab2Index = () => {
     });
 
     if (!result.canceled) {
-      setImage(result.uri);
-      // setImage(result.assets[0].uri) instead of setImage(result.uri) if using ImagePicker.launchImageLibraryAsync
+      setImage(result.assets[0].uri);
     }
   };
 
@@ -85,10 +79,23 @@ const Tab2Index = () => {
       </View>
       <View>
         {image && (
-          <Image
-            source={{ uri: image }}
-            style={{ width: 400, height: 300, resizeMode: "contain" }}
-          />
+          <>
+            <Image
+              source={{ uri: image }}
+              style={{ width: 400, height: 300, resizeMode: "contain" }}
+            />
+            <Button
+              style={{ margin: 15, width: 200 }}
+              title="Submit Receipt"
+              onPress={async () => {
+                // Get receipt info from Google Vision API
+                const receiptInfo = await callGoogleVisionAsync(base64Img);
+                const imageURL = await uploadReceiptImageToFirebaseStorage(image);
+                addReceiptToFirestore(imageURL, receiptInfo);
+                // check for duplicates
+              }}
+            />
+          </>
         )}
       </View>
     </View>
