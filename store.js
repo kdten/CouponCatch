@@ -9,17 +9,35 @@ import {
 } from "firebase/auth/react-native";
 import { app, auth } from "./firebase-config";
 // Firebase Firestore imports
-import { getFirestore, collection, addDoc, setDoc, serverTimestamp, doc } from 'firebase/firestore';
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  where,
+  setDoc,
+  serverTimestamp,
+  doc,
+  onSnapshot,
+} from "firebase/firestore";
 // Firebase Storage imports
-import { v4 as uuidv4 } from 'uuid';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-
+import { v4 as uuidv4 } from "uuid";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
 
 export const AuthStore = new Store({
   isLoggedIn: false,
   initialized: false,
   user: null,
   userID: null,
+});
+
+export const ReceiptsStore = new Store({
+  receipts: [],
 });
 
 // Initialize Firestore
@@ -40,7 +58,6 @@ export const uploadReceiptImageToFirebaseStorage = async (uri) => {
 
     // Now this function returns the download URL of the uploaded image
     return downloadURL;
-
   } catch (e) {
     console.error("Error during image upload to Firebase", e);
     return null;
@@ -65,6 +82,33 @@ export const addReceiptToFirestore = async (url, receiptInfo) => {
   }
 };
 
+export const fetchReceipts = async () => {
+  const { user } = AuthStore.getRawState(); // Get current user from AuthStore
+
+  if (user) {
+    const db = getFirestore();
+    const q = query(
+      collection(db, "Receipts"),
+      where("UserID", "==", user.uid)
+    );
+
+    // Create a real-time listener
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const receiptsData = querySnapshot.docs.map((doc) => doc.data());
+
+      ReceiptsStore.update((s) => {
+        s.receipts = receiptsData;
+      });
+
+      if (!receiptsData) {
+        console.log("No receipts found");
+      }
+    });
+
+    // Optional: Return the unsubscribe function, so you can stop listening later
+    return unsubscribe;
+  }
+};
 
 const unsub = onAuthStateChanged(auth, (user) => {
   console.log("onAuthStateChange", user);
@@ -117,8 +161,6 @@ export const appSignUp = async (email, password, displayName) => {
       userID: resp.user.uid,
       timeCreated: serverTimestamp(), // this will add a server timestamp
     });
-
-
 
     AuthStore.update((store) => {
       store.user = auth.currentUser;
