@@ -2,30 +2,20 @@ import { Link, Redirect, Stack } from "expo-router";
 import { View, ScrollView, SafeAreaView } from "react-native";
 import { ListItem, Badge, ActivityIndicator } from "@react-native-material/core";
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { getFirestore, collection, getDocs, setDoc, serverTimestamp, doc, query, where } from 'firebase/firestore';
 import { useEffect, useState } from "react";
 import { db, AuthStore } from "../../../store";
+import { ReceiptsStore, fetchReceipts } from "../../../store";
 
 
 const Tab1Index = () => {
-  const [receipts, setReceipts] = useState([]);
+  const receipts = ReceiptsStore.useState(s => s.receipts);
 
   useEffect(() => {
-    const fetchReceipts = async () => {
-      const { user } = AuthStore.getRawState(); // Get current user from AuthStore
-    
-      if (user) { // Make sure user is not null
-        const querySnapshot = await getDocs(query(collection(db, "Receipts"), where("UserID", "==", user.uid)));
-    
-        const receiptsData = querySnapshot.docs.map(doc => doc.data());
-        setReceipts(receiptsData);
-        if (!receiptsData) {
-          console.log("No receipts found");
-        }
-      }
-    };
+    // Start listening when the component mounts
+    const unsubscribe = fetchReceipts();
 
-    fetchReceipts();
+    // Stop listening when the component unmounts
+    return unsubscribe;
   }, []);
 
   return (
@@ -35,9 +25,6 @@ const Tab1Index = () => {
       {receipts.map((receipt, index) => (
         <ReceiptListItem key={index} receipt={receipt} />
       ))}
-
-      {/* <Link href="/home/details">Go to Details</Link>
-      <Link href="/home/new-entry-modal">Present modal</Link> */}
     </ScrollView>
   );
 };
