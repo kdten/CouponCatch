@@ -6,6 +6,8 @@ import { callGoogleVisionAsync } from "../../../visionhelper";
 import {
   uploadReceiptImageToFirebaseStorage,
   addReceiptToFirestore,
+  showSnackbar,
+  ReceiptsStore,
 } from "../../../store";
 
 import { ActivityIndicator } from "@react-native-material/core";
@@ -13,6 +15,7 @@ import { ActivityIndicator } from "@react-native-material/core";
 const Tab2Index = () => {
   const [image, setImage] = useState(null);
   const [base64Img, setBase64Img] = useState(null);
+  const usersCurrentReceipts = ReceiptsStore.useState(s => s.receipts);
 
   useEffect(() => {
     (async () => {
@@ -20,7 +23,7 @@ const Tab2Index = () => {
         const { status } =
           await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
-          alert("We need camera roll permissions to make this work.");
+          alert("We need camera roll permissions.");
         }
       }
     })();
@@ -73,10 +76,11 @@ const Tab2Index = () => {
           alignContent: "space-around",
         }}
       >
-        <Button title="Pick an image" onPress={pickImage} />
-        <View style={{ margin: 15 }} />
+        <Button title="Pick image" onPress={pickImage} />
+        <View style={{ margin: 25 }} />
         <Button title="Use camera" onPress={takePhoto} />
       </View>
+      <View style={{ margin: 15 }} />
       <View>
         {image && (
           <>
@@ -84,17 +88,29 @@ const Tab2Index = () => {
               source={{ uri: image }}
               style={{ width: 400, height: 300, resizeMode: "contain" }}
             />
+            <View style={{ margin: 15 }} />
             <Button
-              style={{ margin: 15, width: 200 }}
+              style={{ margin: 15, width: 100 }}
               title="Submit Receipt"
               onPress={async () => {
                 // Get receipt info from Google Vision API
                 const receiptInfo = await callGoogleVisionAsync(base64Img);
-                const imageURL = await uploadReceiptImageToFirebaseStorage(image);
-                addReceiptToFirestore(imageURL, receiptInfo);
-                // check for duplicates
-              }}
-            />
+                // duplicate
+                const duplicate = usersCurrentReceipts.find(
+                  receipt => JSON.stringify(receipt.terminalTransactionOperator) === JSON.stringify(receiptInfo.terminalTransactionOperator)
+                );
+
+                    
+                    if (duplicate) {
+                        showSnackbar("This receipt already added.");
+                    } else {
+                        const imageURL = await uploadReceiptImageToFirebaseStorage(image);
+                        addReceiptToFirestore(imageURL, receiptInfo);
+                        showSnackbar("Receipt added");
+                    }
+
+            }}
+        />
           </>
         )}
       </View>
@@ -102,12 +118,4 @@ const Tab2Index = () => {
   );
 };
 
-// return (
-//   <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-//     <Button title="Use camera" onPress={takePhoto} />
-//     <Button title="Pick an image from camera roll" onPress={pickImage} />
-//     {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
-//   </View>
-// );
-// };
 export default Tab2Index;
