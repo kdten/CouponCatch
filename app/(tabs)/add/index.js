@@ -97,12 +97,13 @@ const Tab2Index = () => {
                 const receiptInfo = await callGoogleVisionAsync(base64Img);
                 // duplicate
                 const duplicate = usersCurrentReceipts.find(
-                  receipt => JSON.stringify(receipt.terminalTransactionOperator) === JSON.stringify(receiptInfo.terminalTransactionOperator)
+                  receipt => JSON.stringify(receipt.terminalTransactionOperator) === JSON.stringify(receiptInfo.terminalTransactionOperator) 
+                    && receipt.dateOfPurchase === receiptInfo.dateOfPurchase
                 );
 
                     
                     if (duplicate) {
-                        showSnackbar("This receipt already added.");
+                        showSnackbar("This receipt already added");
                     } else {
                         const imageURL = await uploadReceiptImageToFirebaseStorage(image);
                         addReceiptToFirestore(imageURL, receiptInfo);
