@@ -11,16 +11,13 @@ const Tab1Index = () => {
   const receipts = ReceiptsStore.useState(s => s.receipts);
 
   useEffect(() => {
-    // Start listening when the component mounts
-    const unsubscribe = fetchReceipts();
-
-    // Stop listening when the component unmounts
-    return unsubscribe;
+    // Execute fetchReceipts and don't worry about cleanup
+    fetchReceipts();
   }, []);
-
+  
   return (
     <ScrollView contentContainerStyle={{ flex: 1, justifyContent: "start", alignItems: "stretch" }}>
-      <Stack.Screen options={{ headerShown: true, title: "Home" }} />
+      <Stack.Screen options={{ headerShown: true, title: "My Receipts" }} />
 
       {receipts.map((receipt, index) => (
         <ReceiptListItem key={index} receipt={receipt} />
@@ -35,7 +32,7 @@ const ReceiptListItem = ({ receipt }) => {
     <ListItem
       title={`${receipt.dateOfPurchase} #${receipt.storeNumber}`} // use data from receipt
       secondaryText=""
-      trailing={<Badge style={{ flexWrap: "nowrap" }} label={"$12.65"} color="primary" />}
+      trailing={<Badge style={{ flexWrap: "nowrap" }} label={"2_days_$12.65"} color="primary" />}
       onClick={() => {
         // Handle button press
       }}
